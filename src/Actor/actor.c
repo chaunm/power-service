@@ -557,6 +557,16 @@ void ActorOnConnect(struct mosquitto* client, void* context, int result)
 		printf("subscribe to topic %s\n", topicName);
 		mosquitto_subscribe(client, &pActor->DeliveredToken, topicName, QOS);
 		free(topicName);
+
+		//publish to the system about online status
+		json_t* startJson = json_object();
+		json_t* statusJson = json_string("status.online");
+		json_object_set(startJson, "status", statusJson);
+		char* startMessage = json_dumps(startJson, JSON_INDENT(4) | JSON_REAL_PRECISION(4));
+		ActorSend(pActor, "event/service/world/manifest", startMessage, NULL, FALSE, NULL);
+		free(startMessage);
+		json_decref(statusJson);
+		json_decref(startJson);
 	}
 	else
 		pActor->connected = 0;
