@@ -292,16 +292,16 @@ void ActorSend(PACTOR pActor, char* topicName, char* message, ACTORCALLBACKFN ca
 		json_decref(uuidJson);
 		json_decref(jsonHeader);
 		free(uuidString);
-		sendBuffer = json_dumps(jsonMessage, JSON_INDENT(4) | JSON_REAL_PRECISION(4));
+
 	}
 	else
 	{
-		sendBuffer = StrDup(message);
 		if (jsonId != NULL)
 			json_decref(jsonId);
 		if (jsonHeader != NULL)
 			json_decref(jsonHeader);
 	}
+	sendBuffer = json_dumps(jsonMessage, JSON_INDENT(4) | JSON_REAL_PRECISION(4));
 	mosquitto_publish(pActor->client, &pActor->DeliveredToken, topicName, strlen(sendBuffer),
 			(void*)sendBuffer, QOS, 0);
 
