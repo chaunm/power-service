@@ -16,17 +16,21 @@
 #include "lib/wiringPi/wiringPi.h"
 #include "universal.h"
 #include "Actor/actor.h"
-
+#include "strings.h"
 
 #define MAIN_LOOP_PERIOD	10000
 
 static PACTOR PowerActor = NULL;
 static BOOL powerState;
-static unsigned long backoutDuration;
+static unsigned long backoutDuration = 0;
 static unsigned long blackoutTimeStamp;
 
 static void PowerSetupGpio()
 {
+	char command[255];
+	printf("Init IO for power service\n");
+	sprintf(command, "gpio export %d in", POWER_STATE_PIN);
+	system(command);
 	wiringPiSetupSys();
 	pinMode(POWER_STATE_PIN, INPUT);
 	if (digitalRead(POWER_STATE_PIN) == HIGH)
@@ -112,7 +116,7 @@ static void PowerPublishBlackoutEvent()
 	json_t* blackoutJson = json_string("true");
 	json_t* blackoutTimeJson = json_integer(timeStamp);
 	json_object_set(paramsJson, "blackout", blackoutJson);
-	json_object_set(paramsJson, "backoutDuration", blackoutTimeJson);
+	json_object_set(paramsJson, "time stamp", blackoutTimeJson);
 	json_object_set(eventJson, "params", paramsJson);
 	char* eventMessage = json_dumps(eventJson, JSON_INDENT(4) | JSON_REAL_PRECISION(4));
 	//char* topicName = ActorMakeTopicName(PowerActor->guid, "/:event/info");
@@ -223,7 +227,7 @@ int main(int argc, char* argv[])
 	char *guid = NULL;
 	char *host = NULL;
 	WORD port = 0;
-	printf("start qr-service \n");
+	printf("start power service \n");
 	// specific the expected option
 	static struct option long_options[] = {
 			{"id",      required_argument,  0, 'i' },
